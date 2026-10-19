@@ -21,7 +21,7 @@ After data retrieval, the payloads pass through Text Nodes (`chatbot-message`) w
 
 ## Bot Information
 *   **Link:** https://t.me/JonnyJimmybot
-*   **Token:** `8566475630:AAH4nIvwSukBA5-btr3Brof48oiDRRtgs6I`
+*   **Token:** `<YOUR_TELEGRAM_BOT_TOKEN>`
 
 ## Group 32
 *   Conficconi Michele
