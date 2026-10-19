@@ -1,0 +1,179 @@
+[
+    {
+        "id": "f742edae034f0ad0",
+        "type": "tab",
+        "label": "Node-red Evaluation",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "b722c8015b81f860",
+        "type": "chatbot-telegram-receive",
+        "z": "f742edae034f0ad0",
+        "bot": "e145681d1fc7e143",
+        "botProduction": "e145681d1fc7e143",
+        "x": 150,
+        "y": 340,
+        "wires": [
+            [
+                "6bde4ead2428d758",
+                "7fa7aa1fae878c4b"
+            ]
+        ]
+    },
+    {
+        "id": "c799d253ba3151a3",
+        "type": "chatbot-telegram-send",
+        "z": "f742edae034f0ad0",
+        "bot": "e145681d1fc7e143",
+        "botProduction": "e145681d1fc7e143",
+        "track": false,
+        "passThrough": false,
+        "errorOutput": false,
+        "outputs": 0,
+        "x": 1070,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "6bde4ead2428d758",
+        "type": "function",
+        "z": "f742edae034f0ad0",
+        "name": "ParserFunction",
+        "func": "delete msg.ts;\ndelete msg.transport;\nmsg.payload.inbound = false;\nmsg.payload.fallback = null;\n\nlet array = msg.payload.content.split(' ');\n\nif(array.length >3){ //if the city name contains a space, we reconstruct it in a single string\n    let unifiedArray = \"\";\n    for(let i =1; i<array.length -1; i++){\n        unifiedArray = unifiedArray + \" \" + array[i];\n    }\n    array = [array[0], unifiedArray, array[array.length-1]];\n} //when the professor said that it is not necessary we already added this\n\nif (msg.payload.content.match(\"QUERY \")){\n    msg.location = {\n        country : array[2],\n        city : array[1]\n    }\n    return [msg, null];\n} else if (msg.payload.content.match(\"TRACK \")) {\n    let map = flow.get(\"track\");\n    if(!map.has(msg.payload.chatId)){\n        map.set(msg.payload.chatId, []);\n    }\n\n    let insert = {\n        country: array[2],\n        city: array[1]\n    }\n\n    let value = map.get(msg.payload.chatId);\n    value.push(insert);\n    map.set(msg.payload.chatId, value);\n\n    flow.set(\"track\", map);\n    msg.payload = array[1];\n    return [null, msg];\n\n} else if (msg.payload.content.match(\"REPORT\")) {\n    let map = flow.get(\"track\");\n    let value = map.get(msg.payload.chatId);\n    for(let i in value){\n        msg.location = {\n            country : value[i].country,\n            city : value[i].city\n        }\n        node.send([msg, null]);\n    }\n} else { //no error handling \n    return [null, null];\n}\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\nflow.set(\"track\", new Map);",
+        "finalize": "",
+        "libs": [],
+        "x": 376,
+        "y": 340,
+        "wires": [
+            [
+                "a6ad4fa045b62caf"
+            ],
+            [
+                "91f3cc6d4bb4ce81"
+            ]
+        ]
+    },
+    {
+        "id": "a6ad4fa045b62caf",
+        "type": "openweathermap",
+        "z": "f742edae034f0ad0",
+        "name": "QueryNode",
+        "wtype": "current",
+        "lon": "",
+        "lat": "",
+        "city": "",
+        "country": "",
+        "language": "en",
+        "x": 542,
+        "y": 240,
+        "wires": [
+            [
+                "596817f3927b734b"
+            ]
+        ]
+    },
+    {
+        "id": "596817f3927b734b",
+        "type": "chatbot-message",
+        "z": "f742edae034f0ad0",
+        "name": "",
+        "message": [
+            {
+                "message": "The temperature in {{payload.location}} is {{payload.tempc}}C!"
+            }
+        ],
+        "language": "none",
+        "x": 874,
+        "y": 240,
+        "wires": [
+            [
+                "c799d253ba3151a3",
+                "65eb3d23dd00529e"
+            ]
+        ]
+    },
+    {
+        "id": "91f3cc6d4bb4ce81",
+        "type": "chatbot-message",
+        "z": "f742edae034f0ad0",
+        "name": "",
+        "message": [
+            {
+                "message": "Tracking temperature for {{payload}}!"
+            }
+        ],
+        "language": "none",
+        "x": 718,
+        "y": 340,
+        "wires": [
+            [
+                "c799d253ba3151a3",
+                "65eb3d23dd00529e"
+            ]
+        ]
+    },
+    {
+        "id": "7fa7aa1fae878c4b",
+        "type": "debug",
+        "z": "f742edae034f0ad0",
+        "name": "debug 6",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 360,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "65eb3d23dd00529e",
+        "type": "debug",
+        "z": "f742edae034f0ad0",
+        "name": "debug 7",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1100,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "e145681d1fc7e143",
+        "type": "chatbot-telegram-node",
+        "botname": "JonnyBot",
+        "usernames": "",
+        "polling": "1000",
+        "store": "",
+        "log": "",
+        "debug": false,
+        "skipMediaFiles": false,
+        "webHook": "",
+        "connectMode": "polling",
+        "storeMessages": true,
+        "enableMissionControl": false,
+        "inspectMessages": true,
+        "chatbotId": ""
+    },
+    {
+        "id": "941ad7cdbb1d3222",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-chatbot": "1.2.4",
+            "node-red-node-openweathermap": "1.0.1"
+        }
+    }
+]
